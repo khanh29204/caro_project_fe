@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  caro_project_fe:
+    image: ghcr.io/khanh29204/caro_project_fe:latest
+    container_name: caro_project_fe
+    ports:
+      - '3004:80'
+    restart: always
+    networks:
+      - default

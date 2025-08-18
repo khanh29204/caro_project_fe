@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* tuỳ chọn: base tối màu giống demo trước */
+@layer base {
+  :root { color-scheme: dark; }
+  body { @apply bg-slate-950 text-slate-100; }
+}
