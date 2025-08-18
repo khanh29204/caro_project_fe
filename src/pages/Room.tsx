@@ -35,22 +35,49 @@ export default function Room({ user }: { user: User | null }) {
 
   // Join phòng + subscribe state
   useEffect(() => {
+    // Lấy user từ props hoặc LS
     const u = user || JSON.parse(localStorage.getItem("caro_user") || "null");
-    if (!u) return; // không có user thì khỏi join
+    if (!u) return;
 
     const socket = getSocket();
-    const upper = roomId.toUpperCase();
+    const rid = (roomId || "").toUpperCase();
 
+    // Handlers đặt tên để tháo chuẩn
     const onRoomState = (s: RoomState) => setState(s);
+    const onRoomDeleted = (deletedId: string) => {
+      if ((deletedId || "").toUpperCase() === rid) {
+        alert(`Phòng ${deletedId} đã bị xoá!`);
+        // dùng react-router thì tốt hơn:
+        // nav("/");
+        window.location.href = "/";
+      }
+    };
 
-    socket.emit("join-room", { roomId: upper, user: u });
+    // Khi socket (re)connect, join lại đúng room (fix đổi Wi-Fi/4G/VPN/reload tab)
+    const join = () => socket.emit("join-room", { roomId: rid, user: u });
+
+    // Đảm bảo không bị add trùng listener khi roomId/user đổi:
+    socket.off("room-state", onRoomState);
+    socket.off("room-deleted", onRoomDeleted);
+    socket.off("connect", join);
+
     socket.on("room-state", onRoomState);
+    socket.on("room-deleted", onRoomDeleted);
+    socket.on("connect", join);
 
-    sessionStorage.setItem("roomId", upper);
+    // Join ngay lần đầu
+    join();
 
-    // ✅ cleanup: tháo listener, không return socket
+    // Lưu room hiện tại để debug/khôi phục nếu cần
+    sessionStorage.setItem("roomId", rid);
+
     return () => {
+      // Tháo đúng handlers đã gắn
       socket.off("room-state", onRoomState);
+      socket.off("room-deleted", onRoomDeleted);
+      socket.off("connect", join);
+      socket.disconnect();
+      sessionStorage.removeItem("roomId");
     };
   }, [roomId, user]);
 
@@ -225,7 +252,7 @@ export default function Room({ user }: { user: User | null }) {
         {opponent ? (
           <p className="text-sm text-slate-300">
             {opponent.name}:{" "}
-            <b className="text-slate-100">{history?.wins ?? 0}</b> thắng của bạn
+            Thắng <b className="text-slate-100">{history?.wins ?? 0}</b>
             • Thua: <b className="text-slate-100">{history?.losses ?? 0}</b> •
             Hòa: <b className="text-slate-100">{history?.draws ?? 0}</b> • Tổng:{" "}
             <b className="text-slate-100">{history?.total ?? 0}</b>
