@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { getSocket } from "../socket";
 import { getHistory } from "../api";
 import Board from "../components/Board";
+import ProfileModal from "../components/ProfileModal";
 
 type User = { id: string; name: string };
 type SymbolXO = "X" | "O";
@@ -31,6 +32,7 @@ export default function Room({ user }: { user: User | null }) {
 
   // Popup
   const [showResult, setShowResult] = useState(false);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const prevWinnerRef = useRef<RoomState["winner"]>(null);
 
   // Join phòng + subscribe state
@@ -188,7 +190,13 @@ export default function Room({ user }: { user: User | null }) {
             <span className="grid h-6 w-6 place-items-center rounded-full border border-rose-500 bg-rose-900/30 font-extrabold text-rose-400">
               X
             </span>
-            <span>
+            <span 
+              className="cursor-pointer hover:text-blue-400 hover:underline transition"
+              onClick={() => {
+                const p = state?.players.find((p) => p.symbol === "X");
+                if (p) setProfileUser(p);
+              }}
+            >
               {state?.players.find((p) => p.symbol === "X")?.name ||
                 "Đang chờ..."}
             </span>
@@ -201,7 +209,13 @@ export default function Room({ user }: { user: User | null }) {
             <span className="grid h-6 w-6 place-items-center rounded-full border border-cyan-500 bg-cyan-900/30 font-extrabold text-cyan-300">
               O
             </span>
-            <span>
+            <span 
+              className="cursor-pointer hover:text-blue-400 hover:underline transition"
+              onClick={() => {
+                const p = state?.players.find((p) => p.symbol === "O");
+                if (p) setProfileUser(p);
+              }}
+            >
               {state?.players.find((p) => p.symbol === "O")?.name ||
                 "Đang chờ..."}
             </span>
@@ -317,6 +331,15 @@ export default function Room({ user }: { user: User | null }) {
             {`@keyframes modalIn { to { transform: translateY(0) scale(1); opacity: 1; } }`}
           </style>
         </div>
+      )}
+
+      {/* Profile Modal */}
+      {profileUser && (
+        <ProfileModal
+          userId={profileUser.id}
+          userName={profileUser.name}
+          onClose={() => setProfileUser(null)}
+        />
       )}
     </div>
   );

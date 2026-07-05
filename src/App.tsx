@@ -28,8 +28,12 @@ export default function App() {
     setLoading(false);
   }, []);
 
-  function setUserPersist(u: User) {
-    localStorage.setItem("caro_user", JSON.stringify(u));
+  function setUserPersist(u: User | null) {
+    if (u) {
+      localStorage.setItem("caro_user", JSON.stringify(u));
+    } else {
+      localStorage.removeItem("caro_user");
+    }
     setUser(u);
   }
 
